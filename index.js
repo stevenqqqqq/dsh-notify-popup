@@ -5,12 +5,14 @@
  *   - an agent turn is about to close (the task is finished), or
  *   - the agent is blocked waiting for an approval / an answer.
  *
- * Primary backend runs the sibling notify.ps1 through Windows PowerShell in
- * STA mode: a top-most WPF card in the bottom-right corner that fades in,
+ * Primary backend runs the sibling notify.ps1 through launch.vbs, executed by
+ * wscript.exe — a GUI-subsystem binary that never creates a console, so no cmd
+ * black box flashes on Windows. The script itself runs under powershell.exe
+ * -Sta: a top-most WPF card in the bottom-right corner that fades in,
  * auto-closes, and closes on click — visible even when DSH is not in the
  * foreground. STA matters: WPF ShowDialog() throws without it. IMPORTANT:
- * never add detached:true to that spawn — on Windows it starts PowerShell
- * without a console and the script exits 0 without doing anything.
+ * never add detached:true to a PowerShell spawn — on Windows it starts
+ * PowerShell without a console and the script exits 0 without doing anything.
  * Electron Notification stays only as a last-resort fallback.
  */
 import { spawn } from 'node:child_process'
@@ -23,6 +25,7 @@ import { appendFileSync, existsSync } from 'node:fs'
 const require = createRequire(import.meta.url)
 
 const SCRIPT_PATH = fileURLToPath(new URL('./notify.ps1', import.meta.url))
+const LAUNCHER_PATH = fileURLToPath(new URL('./launch.vbs', import.meta.url))
 
 const DEFAULTS = {
   turnComplete: true,
@@ -129,19 +132,16 @@ function showPowerShell(title, body, config) {
       diag(config, 'notify.ps1 missing at ' + SCRIPT_PATH)
       return false
     }
+    if (!existsSync(LAUNCHER_PATH)) {
+      diag(config, 'launch.vbs missing at ' + LAUNCHER_PATH)
+      return false
+    }
+    // wscript.exe is a GUI-subsystem binary: no console window is ever created,
+    // so the cmd black box cannot flash. It starts PowerShell hidden via Shell.Run.
+    // Do NOT add detached:true (see header note).
     const child = spawn(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-NonInteractive',
-        '-Sta',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-WindowStyle',
-        'Hidden',
-        '-File',
-        SCRIPT_PATH,
-      ],
+      'wscript.exe',
+      [LAUNCHER_PATH],
       {
         stdio: 'ignore',
         windowsHide: true,
