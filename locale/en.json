@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Desktop Notifications",
+    "description": "Shows a Windows desktop popup when a turn finishes or the agent needs your confirmation.",
+    "detail": "Popups appear for finished turns, pending approvals and pending questions, and stay visible even when DeepSeek Harness is not the foreground window."
+  }
+}
