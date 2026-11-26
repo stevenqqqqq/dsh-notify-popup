@@ -17,6 +17,7 @@
 - **后台子 agent 不打扰**：用 `options.subagentDepth` 识别子 agent，只给主 agent 的任务结束弹窗。
 - **审批弹窗兜底**：DSH 的审批/提问是带作用域的 waterfall 事件，普通全局监听器收不到；插件额外监听 Cordis 的 `internal/dispatch` 全局事件旁路捕获，两类事件都实测可用。
 - **不重复弹**：普通钩子与兜底观察者共用 1200ms 去重窗口。
+- **不闪 cmd 黑框**：经 `wscript.exe launch.vbs`（GUI 子系统、无控制台）以隐藏窗口方式拉起 PowerShell，不会在 Windows 上闪出命令行黑框。
 
 ## 安装
 
@@ -56,12 +57,14 @@
 - PowerShell 启动参数**绝不能加 `detached: true`**：Windows 上 libuv 会加 `DETACHED_PROCESS`，无控制台的 PowerShell 脚本会静默不执行，退出码却是 0。
 - WPF 的 `ShowDialog()` **必须 `-Sta`**，否则 MTA 线程抛 `The calling thread must be STA`。
 - 弹窗文字用环境变量传给 PowerShell，避免中文在非 ASCII 命令行里乱码。
+- 不再直接 `spawn('powershell.exe', ...)`——Node 从 DSH 控制台进程拉起 PowerShell 会闪出 cmd 黑框。改为 `spawn('wscript.exe', ['launch.vbs'])`，VBS 的 `Shell.Run(..., 0, False)` 隐藏窗口启动 PowerShell，全程不创建控制台。
 - Electron `Notification` 只作为最后兜底：Windows 上未注册 AppUserModelID 时可能创建了却不显示。
 
 ## 文件
 
 ```
 index.js          宿主半边：事件钩子 + 兜底观察者 + 调度弹窗
+launch.vbs        无控制台启动器：隐藏窗口拉起 PowerShell
 notify.ps1        Windows PowerShell WPF 弹窗
 cordis.patch.yml  bundle 注册
 package.json      包清单
