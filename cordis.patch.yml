@@ -1,0 +1,3 @@
+- insert:
+    - id: notify-popup
+      name: '@local/dsh-notify-popup'
