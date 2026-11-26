@@ -14,6 +14,8 @@
 
 主要走 Windows PowerShell 起的置顶 WPF 悬浮窗：右下角显示、淡入、约 9 秒自动消失，点击即刻关闭。这条路径已实测确认——即使 DSH 不在前台，弹窗依然可见。仅当 PowerShell 完全起不来时才退回 Electron 的 `Notification`（在 Windows 上未注册 AppUserModelID 时可能创建成功却不显示，因此不作为首选）。
 
+启动链是 `index.js` → `wscript.exe launch.vbs` → `powershell.exe -Sta -File notify.ps1`。用 wscript（GUI 子系统、本身无控制台）经 `Shell.Run` 以隐藏窗口方式拉起 PowerShell，因此 Windows 上不会再闪出 cmd 黑框。若改用 Node 直接 spawn powershell.exe，控制台窗口会一闪而过——故保留这层 VBS 启动器。
+
 ## 子 agent 不弹窗
 
 `agent/turn-stopping` 只对主 agent 弹窗。后台子 agent 的 `options.subagentDepth` 大于 0，会被识别并抑制，避免子任务结束时误报「任务已完成」。
