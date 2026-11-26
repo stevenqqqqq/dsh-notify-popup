@@ -1,0 +1,4 @@
+# Local diagnostics and temp files
+*.log
+_*.mjs
+node_modules/
