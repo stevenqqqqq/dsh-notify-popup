@@ -1,0 +1,25 @@
+{
+  "name": "@local/dsh-notify-popup",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Desktop popups when a DSH turn finishes or the agent needs your confirmation.",
+  "exports": {
+    ".": "./index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "notify.ps1",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
